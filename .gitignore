@@ -1,0 +1,5 @@
+*.retry
+.kitchen/
+.kitchen.local.yml
+.idea/
+tests/roles/

@@ -1,0 +1,43 @@
+---
+driver:
+  name: docker
+  use_sudo: false
+  privileged: true
+
+provisioner:
+  name: ansible_playbook
+  hosts: all
+  require_pip: true
+  roles_path: ../ansible-role-tls-certificates/
+  playbook: tests/test.yml
+  additional_copy_path:
+    - tests/test_vars.yml
+  ansible_diff: true
+  ansible_verbose: true
+  ansible_verbosity: 1
+  ansible_inventory: tests/inventory
+  ansible_sudo: false
+  extra_vars:
+    VAULT_TOKEN: <%= ENV['VAULT_TOKEN'] %>
+
+platforms:
+  - name: debian-9
+    driver:
+      image: rndmh3ro/docker-debian9-ansible:latest
+      platform: debian
+      run_command: /sbin/init
+      provision_command:
+        - apt install -y systemd-sysv python-pip python-setuptools
+        - systemctl enable ssh.service
+
+  - name: ubuntu-1804
+    driver:
+      image: rndmh3ro/docker-ubuntu1804-ansible:latest
+      platform: ubuntu
+      run_command: /sbin/init
+      provision_command:
+        - apt install -y python-pip python-setuptools
+        - systemctl enable ssh.service
+
+suites:
+  - name: os

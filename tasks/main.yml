@@ -1,2 +1,51 @@
 ---
-# tasks file for ansible-role-tls-certificates
+- name: Rollout TLS certificates
+  become: true
+  when:
+    - certificates | length > 0
+  block:
+
+    - name: Provide TLS certificates from Vault
+      copy:
+        content: >-
+          {{ lookup('hashi_vault',
+          'secret={{ vault_path.rstrip("/") }}/{{ item }}
+          {{ vault_token_string }}
+          url={{ vault_url }}').data[vault_secret_cert_keyname] }}
+        dest: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
+        owner: "root"
+        group: "root"
+        mode: 0644
+      loop: "{{ certificates }}"
+
+    - name: Check if certificates are currently still valid, ignoring failures
+      openssl_certificate:
+        path: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
+        provider: assertonly
+        has_expired: false
+      ignore_errors: true
+      register: validity_check
+      loop: "{{ certificates }}"
+
+    - name: Provide TLS private keys from Vault
+      copy:
+        content: >-
+          {{ lookup(
+          'hashi_vault',
+          'secret={{ vault_path.rstrip("/") }}/{{ item }}
+          {{ vault_token_string }}
+          url={{ vault_url }}').data[vault_secret_key_keyname] }}
+        dest: "{{ cert_dest_dir }}/{{ item }}-private-key.pem"
+        owner: "root"
+        group: "root"
+        mode: 0600
+      loop: "{{ certificates }}"
+
+    - name: Ensure that existing certificate belongs to specified private key
+      openssl_certificate:
+        path: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
+        privatekey_path: "{{ cert_dest_dir }}/{{ item }}-private-key.pem"
+        provider: assertonly
+        privatekey_passphrase:
+      loop: "{{ certificates }}"
+      ignore_errors: "{{ ansible_check_mode }}"

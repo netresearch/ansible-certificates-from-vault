@@ -1,5 +1,16 @@
 ---
 - hosts: localhost
-  remote_user: root
-  roles:
-    - ansible-role-tls-certificates
+  become: true
+
+  pre_tasks:
+    - name: Install hvac to fetch credentials from vault
+      pip:
+        name: hvac
+        state: present
+
+  tasks:
+
+    - include_vars:
+        file: test_vars.yml
+    - include_role:
+        name: ansible-role-tls-certificates

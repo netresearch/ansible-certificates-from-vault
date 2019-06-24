@@ -1,2 +1,12 @@
 ---
-# defaults file for ansible-role-tls-certificates
+vault_url: "http://myvault:8200"
+vault_path: "secret/certificates"
+vault_token_string: "{{
+  'token=' + VAULT_TOKEN if VAULT_TOKEN is defined and VAULT_TOKEN
+  else 'token=' + vault_token if vault_token is defined and vault_token
+  else ''
+}}"
+vault_secret_cert_keyname: "cert"
+vault_secret_key_keyname: "key"
+cert_dest_dir: "/etc/ssl/private"
+certificates:

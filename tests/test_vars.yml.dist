@@ -1,0 +1,6 @@
+---
+vault_url: "https://vault.example.org"
+vault_path: "secret/certificates"
+certificates:
+  - www.example.org
+  - web1.example.org

@@ -1,7 +1,8 @@
 ---
 galaxy_info:
+  role_name: certificates_from_vault
   author: Norman Bestfleisch <norman.bestfleisch@netresearch.de>
-  description: Fetch TLS certficates from Vault
+  description: Fetch SSL/TLS certificates from HashiCorp's Vault
   company: Netresearch DTT GmbH
   license: AGPL-3.0-only
   min_ansible_version: 2.4

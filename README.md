@@ -83,7 +83,7 @@ This role does not depend on any other role from the Ansible Galaxy.
           - www.example.org
           - web1.example.org
       roles:
-         - netresearch.certificates-from-vault
+         - netresearch.certificates_from_vault
 ```
 **Note:** It is assumed that the certificates are available as secrets in Vault
 at `secret/certificates/www.example.org` and

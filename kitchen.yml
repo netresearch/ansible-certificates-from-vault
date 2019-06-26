@@ -8,7 +8,7 @@ provisioner:
   name: ansible_playbook
   hosts: all
   require_pip: true
-  roles_path: ../ansible-role-tls-certificates/
+  roles_path: ../ansible-certificates-from-vault/
   playbook: tests/test.yml
   additional_copy_path:
     - tests/test_vars.yml

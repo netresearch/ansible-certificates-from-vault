@@ -11,7 +11,7 @@
           {{ lookup('hashi_vault',
           'secret={{ vault_path.rstrip("/") }}/{{ item }}
           {{ vault_token_string }}
-          url={{ vault_url }}').data[vault_secret_cert_keyname] }}
+          url={{ vault_url }}')[vault_secret_cert_keyname] }}
         dest: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
         owner: "root"
         group: "root"
@@ -34,7 +34,7 @@
           'hashi_vault',
           'secret={{ vault_path.rstrip("/") }}/{{ item }}
           {{ vault_token_string }}
-          url={{ vault_url }}').data[vault_secret_key_keyname] }}
+          url={{ vault_url }}')[vault_secret_key_keyname] }}
         dest: "{{ cert_dest_dir }}/{{ item }}-private-key.pem"
         owner: "root"
         group: "root"

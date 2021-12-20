@@ -19,13 +19,20 @@
       loop: "{{ certificates }}"
 
     - name: Check if certificates are currently still valid, ignoring failures
-      openssl_certificate:
+      community.crypto.x509_certificate_info:
         path: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
-        provider: assertonly
-        has_expired: false
+        valid_at:
+          point_1: "+12w"
       ignore_errors: true
       register: validity_check
       loop: "{{ certificates }}"
+
+    - name: Validate that certificate is valid in 12 weeks
+      assert:
+        that:
+          - item.valid_at.point_1
+        quiet: true
+      loop: "{{ validity_check.results }}"
 
     - name: Provide TLS private keys from Vault
       copy:

@@ -18,22 +18,6 @@
         mode: 0644
       loop: "{{ certificates }}"
 
-    - name: Check if certificates are currently still valid, ignoring failures
-      community.crypto.x509_certificate_info:
-        path: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
-        valid_at:
-          point_1: "+12w"
-      ignore_errors: true
-      register: validity_check
-      loop: "{{ certificates }}"
-
-    - name: Validate that certificate is valid in 12 weeks
-      assert:
-        that:
-          - item.valid_at.point_1
-        quiet: true
-      loop: "{{ validity_check.results }}"
-
     - name: Provide TLS private keys from Vault
       copy:
         content: >-
@@ -48,11 +32,33 @@
         mode: 0600
       loop: "{{ certificates }}"
 
-    - name: Ensure that existing certificate belongs to specified private key
-      openssl_certificate:
+    - name: Gather certificate information
+      community.crypto.x509_certificate_info:
         path: "{{ cert_dest_dir }}/{{ item }}-cert.pem"
-        privatekey_path: "{{ cert_dest_dir }}/{{ item }}-private-key.pem"
-        provider: assertonly
-        privatekey_passphrase:
+      register: cert_info
       loop: "{{ certificates }}"
-      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Gather private key information
+      community.crypto.openssl_privatekey_info:
+        path: "{{ cert_dest_dir }}/{{ item }}-private-key.pem"
+      register: pk_info
+      loop: "{{ certificates }}"
+
+    - name: Validate certificates
+      ansible.builtin.assert:
+        that:
+          - not item.expired
+        quiet: false
+        success_msg: "{{ item.subject }} certificate is valid"
+        fail_msg: "{{ item.subject }} certificate is NOT valid"
+      loop: "{{ cert_info.results}}"
+
+    - name: Validate certificates belong to private keys
+      ansible.builtin.assert:
+        that:
+          - item.0.public_key == item.1.public_key
+        quiet: false
+        success_msg: "{{ item.0.subject }} key validation success"
+        fail_msg: "{{ item.0.subject }} key validation FAIL"
+      # https://docs.ansible.com/ansible/latest/user_guide/playbooks_loops.html#with-together
+      loop: "{{ cert_info.results|zip(pk_info.results)|list }}"
